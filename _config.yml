@@ -1,0 +1,31 @@
+title: Notion Blog
+description: A blog powered by Notion + Jekyll + GitHub Pages
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
+theme: minima
+permalink: /:year/:month/:day/:title/
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Exclude from processing
+exclude:
+  - scripts/
+  - requirements.txt
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - .github/
+
+# Pagination / defaults
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post

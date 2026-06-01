@@ -1,0 +1,26 @@
+# Jekyll
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+
+# Ruby
+.bundle/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Notion sync cache
+.notion-sync-cache.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OMC / tooling state
+.omc/
