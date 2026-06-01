@@ -2,8 +2,9 @@ name: Sync Notion to Repo
 
 on:
   schedule:
-    # Polls every 30 minutes (off the :00 mark to avoid fleet congestion)
-    - cron: "17,47 * * * *"
+    # Polls 4x/hour (~15-min cadence). Off the :00/:30 marks and spread
+    # across minutes to reduce GitHub's scheduled-run skipping under load.
+    - cron: "8,23,38,53 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -37,8 +38,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain _posts)" ]; then
-            git add _posts
+          git add _posts
+          [ -d assets/images ] && git add assets/images || true
+          if [ -n "$(git status --porcelain _posts assets/images)" ]; then
             git commit -m "chore(content): sync from Notion"
             git push
           else
