@@ -7,9 +7,24 @@ layout: default
     <p class="hero-desc">{{ site.description }}</p>
   </section>
 
+  {%- assign all_tags = site.posts | map: "tags" | join: "," | split: "," | uniq | sort -%}
+  {%- if all_tags.size > 0 -%}
+  <div class="tag-filter" id="tag-filter">
+    <button class="tag-chip is-active" type="button" data-filter="*">전체</button>
+    {%- for tag in all_tags -%}
+    {%- assign t = tag | strip -%}
+    {%- if t != "" -%}
+    <button class="tag-chip" type="button" data-filter="{{ t | slugify }}">{{ t }}</button>
+    {%- endif -%}
+    {%- endfor -%}
+  </div>
+  {%- endif -%}
+
   <ul class="post-list">
     {%- for post in site.posts -%}
-    <li class="post-card">
+    {%- assign post_tag_slugs = "" -%}
+    {%- for tag in post.tags -%}{%- assign post_tag_slugs = post_tag_slugs | append: " " | append: tag | slugify -%}{%- endfor -%}
+    <li class="post-card" data-tags="{{ post_tag_slugs | strip }}">
       <a class="post-card-link" href="{{ post.url | relative_url }}">
         {%- if post.tags and post.tags.size > 0 -%}
         <div class="post-card-tags">
@@ -29,6 +44,8 @@ layout: default
     </li>
     {%- endfor -%}
   </ul>
+
+  <p class="empty filter-empty" id="filter-empty" hidden>해당 태그의 글이 없습니다.</p>
 
   {%- if site.posts.size == 0 -%}
   <p class="empty">아직 발행된 글이 없습니다. Notion에서 <code>Published</code>를 체크해 보세요.</p>

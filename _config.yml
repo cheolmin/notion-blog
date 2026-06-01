@@ -16,6 +16,18 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
 
+# giscus comments (GitHub Discussions)
+giscus:
+  repo: "cheolmin/notion-blog"
+  repo_id: "R_kgDOStfJog"
+  category: "General"
+  category_id: "DIC_kwDOStfJos4C-QGr"
+  mapping: "pathname"
+  reactions_enabled: "1"
+  theme_light: "light"
+  theme_dark: "dark"
+  lang: "ko"
+
 # Exclude from processing
 exclude:
   - scripts/

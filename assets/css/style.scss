@@ -144,8 +144,27 @@ a:hover { text-decoration: underline; }
   background: var(--blue-soft); color: var(--blue);
   font-size: 12px; font-weight: 600; letter-spacing: -0.01em;
 }
+a.tag:hover { text-decoration: none; background: var(--blue); color: #fff; }
+
+.tag-eyebrow { margin: 0 0 12px; }
+.tag-eyebrow a { color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.tag-eyebrow a:hover { color: var(--blue); text-decoration: none; }
 
 .empty { color: var(--text-tertiary); text-align: center; padding: 60px 0; }
+
+/* ---------- Tag filter ---------- */
+.tag-filter {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 0 0 24px; padding-bottom: 4px;
+}
+.tag-chip {
+  border: 1px solid var(--card-border); border-radius: 999px;
+  padding: 7px 14px; background: var(--card); color: var(--text-secondary);
+  font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+  cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.tag-chip:hover { border-color: var(--blue-soft); color: var(--text); }
+.tag-chip.is-active { background: var(--blue); border-color: var(--blue); color: #fff; }
 
 /* ---------- Post detail ---------- */
 .post-header { padding: 16px 0 28px; border-bottom: 1px solid var(--divider); margin-bottom: 36px; }
@@ -212,6 +231,9 @@ a:hover { text-decoration: underline; }
 .post-footer { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--divider); }
 .back-link { font-weight: 600; color: var(--text-secondary); }
 .back-link:hover { color: var(--blue); text-decoration: none; }
+
+/* ---------- Comments ---------- */
+.comments { margin-top: 40px; }
 
 /* ---------- Site footer ---------- */
 .site-footer { border-top: 1px solid var(--divider); padding: 36px 0; }

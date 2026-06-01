@@ -12,6 +12,26 @@
     return root.getAttribute("data-theme") === "dark" ? "dark" : "light";
   }
 
+  // ---------- giscus theme sync ----------
+  function giscusTheme() {
+    return currentTheme() === "dark"
+      ? (window.GISCUS_THEME_DARK || "dark")
+      : (window.GISCUS_THEME_LIGHT || "light");
+  }
+  function setGiscusTheme() {
+    var frame = document.querySelector("iframe.giscus-frame");
+    if (!frame) return;
+    frame.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: giscusTheme() } } },
+      "https://giscus.app"
+    );
+  }
+  // Set initial theme on the giscus script tag before it loads.
+  (function () {
+    var g = document.querySelector('script[src^="https://giscus.app/client.js"]');
+    if (g) g.setAttribute("data-theme", giscusTheme());
+  })();
+
   if (toggle) {
     toggle.addEventListener("click", function () {
       var next = currentTheme() === "dark" ? "light" : "dark";
@@ -19,6 +39,7 @@
       try {
         localStorage.setItem("theme", next);
       } catch (e) {}
+      setGiscusTheme();
     });
   }
 
@@ -28,6 +49,7 @@
     mq.addEventListener("change", function (e) {
       if (!localStorage.getItem("theme")) {
         root.setAttribute("data-theme", e.matches ? "dark" : "light");
+        setGiscusTheme();
       }
     });
   } catch (e) {}
@@ -72,4 +94,44 @@
 
     pre.appendChild(btn);
   });
+
+  // ---------- Tag filter (home) ----------
+  var filterBar = document.getElementById("tag-filter");
+  if (filterBar) {
+    var chips = filterBar.querySelectorAll(".tag-chip");
+    var cards = document.querySelectorAll(".post-card");
+    var emptyMsg = document.getElementById("filter-empty");
+
+    function applyFilter(slug) {
+      var shown = 0;
+      cards.forEach(function (card) {
+        var tags = (card.getAttribute("data-tags") || "").split(/\s+/);
+        var match = slug === "*" || tags.indexOf(slug) !== -1;
+        card.hidden = !match;
+        if (match) shown++;
+      });
+      chips.forEach(function (c) {
+        c.classList.toggle("is-active", c.getAttribute("data-filter") === slug);
+      });
+      if (emptyMsg) emptyMsg.hidden = shown !== 0;
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var slug = chip.getAttribute("data-filter");
+        applyFilter(slug);
+        if (slug === "*") {
+          history.replaceState(null, "", location.pathname + location.search);
+        } else {
+          history.replaceState(null, "", "#" + slug);
+        }
+      });
+    });
+
+    // Deep-link: /#tag-slug selects that tag on load.
+    var initial = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+    if (initial && filterBar.querySelector('[data-filter="' + initial + '"]')) {
+      applyFilter(initial);
+    }
+  }
 })();

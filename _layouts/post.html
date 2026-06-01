@@ -6,7 +6,7 @@ layout: default
     {%- if page.tags and page.tags.size > 0 -%}
     <div class="post-tags">
       {%- for tag in page.tags -%}
-      <span class="tag">{{ tag }}</span>
+      <a class="tag" href="{{ '/tags/' | append: tag | slugify | append: '/' | relative_url }}">{{ tag }}</a>
       {%- endfor -%}
     </div>
     {%- endif -%}
@@ -26,4 +26,29 @@ layout: default
   <footer class="post-footer">
     <a class="back-link" href="{{ '/' | relative_url }}">← 목록으로</a>
   </footer>
+
+  {%- if site.giscus and site.giscus.repo_id -%}
+  <section class="comments" aria-label="댓글">
+    <script>
+      window.GISCUS_THEME_LIGHT = "{{ site.giscus.theme_light | default: 'light' }}";
+      window.GISCUS_THEME_DARK = "{{ site.giscus.theme_dark | default: 'dark' }}";
+    </script>
+    <script src="https://giscus.app/client.js"
+      data-repo="{{ site.giscus.repo }}"
+      data-repo-id="{{ site.giscus.repo_id }}"
+      data-category="{{ site.giscus.category }}"
+      data-category-id="{{ site.giscus.category_id }}"
+      data-mapping="{{ site.giscus.mapping | default: 'pathname' }}"
+      data-strict="0"
+      data-reactions-enabled="{{ site.giscus.reactions_enabled | default: '1' }}"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="{% if page %}{{ site.giscus.theme_light | default: 'light' }}{% endif %}"
+      data-lang="{{ site.giscus.lang | default: 'ko' }}"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+  {%- endif -%}
 </article>
