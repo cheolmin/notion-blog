@@ -1,7 +1,7 @@
 title: Notion Blog
 description: A blog powered by Notion + Jekyll + GitHub Pages
-baseurl: ""
-url: ""
+baseurl: "/notion-blog"
+url: "https://cheolmin.github.io"
 
 # Build settings
 markdown: kramdown
