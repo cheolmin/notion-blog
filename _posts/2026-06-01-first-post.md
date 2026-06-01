@@ -2,11 +2,9 @@
 layout: post
 title: "Claude Code + Github Copilot Bridge (windows)"
 date: 2026-06-01
-tags: ["Tutorial", "Guide"]
+tags: ["Tutorial", "Guide", "Claude Code"]
 description: "Notion을 활용한 블로그 시스템 테스트를 위한 첫 번째 게시글입니다. 다양한 마크다운 요소를 포함하고 있습니다."
 ---
-
-# **Claude Code + GitHub Copilot 브릿지 (Windows)**
 
 GitHub Copilot 구독을 백엔드로 사용해서 ****Claude Code*\*** CLI를 쓰는 Windows용 원클릭 설정입니다.
 
@@ -191,4 +189,8 @@ ccmodel gpt-5.4  # 임의 모델
 
 모델명을 바꿨는데 안 먹으면 `docs/TROUBLESHOOTING.md`의 "모델명 확인"을 보세요.
 
+
+![]({{ '/assets/images/first-post/cce1686be5df.png' | relative_url }})
+
+![]({{ '/assets/images/first-post/ebc2fd1715ea.png' | relative_url }})
 
