@@ -62,6 +62,9 @@ def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
     lines: list[str] = []
     numbered_idx = 0
     cursor = None
+    prev_is_list = False
+    prev_list_type = None
+    LIST_TYPES = ("bulleted_list_item", "numbered_list_item", "to_do")
     while True:
         resp = client.blocks.children.list(block_id=block_id, start_cursor=cursor)
         for block in resp["results"]:
@@ -70,6 +73,15 @@ def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
             rich = data.get("rich_text", [])
             text = rich_text_to_md(rich)
             indent = "  " * depth
+            is_list = btype in LIST_TYPES
+
+            # Insert a blank line when transitioning between a list group and
+            # a non-list block, or between two different list types (kramdown
+            # needs the separation to parse them correctly).
+            if is_list and prev_is_list and prev_list_type != btype:
+                lines.append("")
+            elif not is_list and prev_is_list:
+                lines.append("")
 
             if btype != "numbered_list_item":
                 numbered_idx = 0
@@ -116,6 +128,9 @@ def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
                 if child_md.strip():
                     lines.append(child_md)
 
+            prev_is_list = is_list
+            prev_list_type = btype if is_list else None
+
         if not resp.get("has_more"):
             break
         cursor = resp.get("next_cursor")
@@ -151,7 +166,23 @@ def yaml_escape(s: str) -> str:
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
+def load_dotenv(path: pathlib.Path) -> None:
+    """Minimal .env loader (stdlib only). Existing env vars take precedence."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = val
+
+
 def main() -> int:
+    load_dotenv(pathlib.Path(__file__).resolve().parent.parent / ".env")
     token = os.environ.get("NOTION_TOKEN")
     db_id = os.environ.get("NOTION_DB_ID")
     if not token or not db_id:
@@ -161,12 +192,23 @@ def main() -> int:
     client = Client(auth=token)
     POSTS_DIR.mkdir(exist_ok=True)
 
+    # Resolve the database's first data source (Notion's 2025 data-source model:
+    # databases.query was removed; queries now run against a data_source id).
+    db = client.databases.retrieve(database_id=db_id)
+    data_sources = db.get("data_sources") or []
+    if not data_sources:
+        print("ERROR: database has no data sources", file=sys.stderr)
+        return 1
+    ds_id = data_sources[0]["id"]
+    if len(data_sources) > 1:
+        print(f"Note: DB has {len(data_sources)} data sources; using '{data_sources[0]['name']}'")
+
     # Query only published rows
     results = []
     cursor = None
     while True:
-        resp = client.databases.query(
-            database_id=db_id,
+        resp = client.data_sources.query(
+            data_source_id=ds_id,
             filter={"property": "Published", "checkbox": {"equals": True}},
             start_cursor=cursor,
         )
@@ -207,10 +249,10 @@ def main() -> int:
         content = "\n".join(fm) + "\n\n" + body + "\n"
 
         # Only write if changed (avoids noisy commits)
-        if filepath.exists() and filepath.read_text(encoding="utf-8") == content:
+        if filepath.exists() and filepath.read_text(encoding="utf-8", newline="\n") == content:
             print(f"  unchanged: {filename}")
             continue
-        filepath.write_text(content, encoding="utf-8")
+        filepath.write_text(content, encoding="utf-8", newline="\n")
         written += 1
         print(f"  wrote: {filename}")
 
