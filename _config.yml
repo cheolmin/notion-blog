@@ -1,12 +1,14 @@
 title: Notion Blog
 description: A blog powered by Notion + Jekyll + GitHub Pages
+author: Cheolmin Ki
 baseurl: "/notion-blog"
 url: "https://cheolmin.github.io"
 
 # Build settings
 markdown: kramdown
-theme: minima
 permalink: /:year/:month/:day/:title/
+sass:
+  style: compressed
 
 plugins:
   - jekyll-feed

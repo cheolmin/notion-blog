@@ -22,12 +22,49 @@ from __future__ import annotations
 import os
 import sys
 import pathlib
+import hashlib
+import urllib.request
+import urllib.parse
 from datetime import date, datetime
 
 from notion_client import Client
 from slugify import slugify
 
 POSTS_DIR = pathlib.Path(__file__).resolve().parent.parent / "_posts"
+ASSETS_IMG_DIR = pathlib.Path(__file__).resolve().parent.parent / "assets" / "images"
+IMG_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif")
+
+
+# --------------------------------------------------------------------------- #
+# Image download
+# --------------------------------------------------------------------------- #
+def download_image(url: str, slug: str, used_images: set) -> str:
+    """Download a Notion-hosted image into assets/images/<slug>/ and return a
+    Liquid-wrapped, baseurl-aware path. Filenames are derived from the URL path
+    hash (Notion signed URLs vary only in their query string), so re-running the
+    sync reuses the existing file instead of re-downloading."""
+    parsed = urllib.parse.urlparse(url)
+    h = hashlib.sha1(parsed.path.encode("utf-8")).hexdigest()[:12]
+    ext = pathlib.Path(parsed.path).suffix.lower()
+    if ext not in IMG_EXTS:
+        ext = ".png"
+    dest_dir = ASSETS_IMG_DIR / slug
+    dest = dest_dir / f"{h}{ext}"
+    rel = f"/assets/images/{slug}/{h}{ext}"
+    used_images.add(dest.resolve())
+    if not dest.exists():
+        try:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            req = urllib.request.Request(url, headers={"User-Agent": "notion-blog-sync"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                data = r.read()
+            dest.write_bytes(data)
+            print(f"    image: {rel} ({len(data)//1024} KB)")
+        except Exception as e:  # noqa: BLE001
+            print(f"    WARN: image download failed ({e}); keeping remote URL", file=sys.stderr)
+            return url
+    # Wrap in Liquid so Jekyll prepends the site baseurl at build time.
+    return "{{ '" + rel + "' | relative_url }}"
 
 
 # --------------------------------------------------------------------------- #
@@ -58,7 +95,7 @@ def rich_text_to_md(rich: list[dict]) -> str:
 # --------------------------------------------------------------------------- #
 # Block -> markdown
 # --------------------------------------------------------------------------- #
-def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
+def blocks_to_md(client: Client, block_id: str, slug: str, used_images: set, depth: int = 0) -> str:
     lines: list[str] = []
     numbered_idx = 0
     cursor = None
@@ -113,8 +150,13 @@ def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
             elif btype == "divider":
                 lines.append("---\n")
             elif btype == "image":
-                src = data.get("file", {}).get("url") or data.get("external", {}).get("url", "")
+                raw = data.get("file", {}).get("url") or data.get("external", {}).get("url", "")
                 caption = rich_text_to_md(data.get("caption", []))
+                is_notion_hosted = bool(data.get("file", {}).get("url"))
+                if raw and is_notion_hosted:
+                    src = download_image(raw, slug, used_images)
+                else:
+                    src = raw  # external URLs are stable; keep as-is
                 lines.append(f"![{caption}]({src})\n")
             elif btype == "equation":
                 lines.append(f"$$\n{data.get('expression','')}\n$$\n")
@@ -124,7 +166,7 @@ def blocks_to_md(client: Client, block_id: str, depth: int = 0) -> str:
 
             # Recurse into children (nested lists, toggles, etc.)
             if block.get("has_children") and btype not in ("child_page", "child_database"):
-                child_md = blocks_to_md(client, block["id"], depth + 1)
+                child_md = blocks_to_md(client, block["id"], slug, used_images, depth + 1)
                 if child_md.strip():
                     lines.append(child_md)
 
@@ -220,6 +262,7 @@ def main() -> int:
     print(f"Found {len(results)} published page(s)")
     written = 0
     seen_files = set()
+    used_images: set = set()
 
     for page in results:
         props = page["properties"]
@@ -238,7 +281,7 @@ def main() -> int:
         seen_files.add(filename)
         filepath = POSTS_DIR / filename
 
-        body = blocks_to_md(client, page["id"])
+        body = blocks_to_md(client, page["id"], slug, used_images)
 
         fm = ["---", "layout: post", f"title: {yaml_escape(title)}", f"date: {post_date}"]
         if tags:
@@ -267,6 +310,18 @@ def main() -> int:
             existing.unlink()
             written += 1
             print(f"  removed: {existing.name}")
+
+    # Remove downloaded images no longer referenced by any synced post
+    if ASSETS_IMG_DIR.exists():
+        for img in ASSETS_IMG_DIR.rglob("*"):
+            if img.is_file() and img.resolve() not in used_images:
+                img.unlink()
+                written += 1
+                print(f"  removed image: {img.relative_to(ASSETS_IMG_DIR.parent.parent)}")
+        # Prune now-empty per-slug directories
+        for d in sorted(ASSETS_IMG_DIR.glob("*"), reverse=True):
+            if d.is_dir() and not any(d.iterdir()):
+                d.rmdir()
 
     print(f"Done. {written} change(s).")
     return 0
