@@ -248,10 +248,15 @@ def main() -> int:
         fm.append("---")
         content = "\n".join(fm) + "\n\n" + body + "\n"
 
-        # Only write if changed (avoids noisy commits)
-        if filepath.exists() and filepath.read_text(encoding="utf-8", newline="\n") == content:
-            print(f"  unchanged: {filename}")
-            continue
+        # Only write if changed (avoids noisy commits). Normalize CRLF so the
+        # comparison is stable across platforms / Python versions. Note:
+        # read_text() has no `newline` kwarg before Python 3.13, so we strip
+        # carriage returns manually instead.
+        if filepath.exists():
+            existing = filepath.read_text(encoding="utf-8").replace("\r\n", "\n")
+            if existing == content:
+                print(f"  unchanged: {filename}")
+                continue
         filepath.write_text(content, encoding="utf-8", newline="\n")
         written += 1
         print(f"  wrote: {filename}")
