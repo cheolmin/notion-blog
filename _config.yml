@@ -1,6 +1,7 @@
-title: Notion Blog
-description: A blog powered by Notion + Jekyll + GitHub Pages
+title: Cheolmin ML log
+description: Azure와 AI/ML, 그리고 그 사이의 잡동사니
 author: Cheolmin Ki
+email: cheolmin.ki@microsoft.com
 baseurl: "/notion-blog"
 url: "https://cheolmin.github.io"
 

@@ -216,6 +216,8 @@ a:hover { text-decoration: underline; }
 /* ---------- Site footer ---------- */
 .site-footer { border-top: 1px solid var(--divider); padding: 36px 0; }
 .site-footer p { color: var(--text-tertiary); font-size: 13px; text-align: center; margin: 0; }
+.site-footer a { color: var(--text-secondary); }
+.site-footer a:hover { color: var(--blue); text-decoration: none; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
