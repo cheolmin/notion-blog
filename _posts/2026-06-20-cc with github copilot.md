@@ -183,23 +183,3 @@ Set-CopilotModel <모델>  # ccc 의 기본 모델을 세션 동안 변경
 
 ---
 
-## 8. 폴더 구성
-
-```plain text
-cc-litellm-proxy\
-├─ README.md                         ← 이 문서
-└─ assets\
-   ├─ config.yaml                    ← ~/.config/litellm/config.yaml 로 복사 (2단계)
-   ├─ litellm-bridge.ps1             ← PS7 프로파일 맨 아래에 붙여넣기 (3-3단계)
-   ├─ starship-init.ps1             ← (선택) PS7 프로파일 맨 위에 붙여넣기 (3-2단계)
-   └─ Microsoft.PowerShell_profile.reference.ps1  ← 동작 확인된 PS7 프로파일 전체 백업(참고용)
-```
-
-> `Microsoft.PowerShell_profile.reference.ps1` 은 **참고용 백업**입니다.
-새 PC 라서 PS7 프로파일이 비어 있다면, 이 파일을 통째로
-`…\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` 로 복사해도 됩니다
-(단, 그 안에는 coreutils/starship 등 이 PC 고유 설정이 포함돼 있으니 확인 후 사용).
-
-
-## 9. Asset
-
