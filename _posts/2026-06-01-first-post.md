@@ -3,7 +3,7 @@ layout: post
 title: "Claude Code + Github Copilot Bridge (windows)"
 date: 2026-06-01
 tags: ["Tutorial", "Guide", "Claude Code"]
-description: "Notion을 활용한 블로그 시스템 테스트를 위한 첫 번째 게시글입니다. 다양한 마크다운 요소를 포함하고 있습니다."
+description: "Claude code 사용 시 Copilot api bridge를 활용하여 github copilot을 model provider로 사용하는 방법"
 ---
 
 GitHub Copilot 구독을 백엔드로 사용해서 ****Claude Code*\*** CLI를 쓰는 Windows용 원클릭 설정입니다.
